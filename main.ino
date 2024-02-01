@@ -30,15 +30,7 @@ void setup() {
 
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
   }
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-  server.begin();
-
 
   pinMode(motorPin1, OUTPUT);
   pinMode(motorPin2, OUTPUT);
@@ -50,8 +42,6 @@ void setup() {
   pinMode(centerTrackerPin, INPUT);
   pinMode(rightTrackerPin, INPUT);
 
-  // Serial communication for debugging
-  Serial.println("Line Following Robot - Debug Output:");
 }
 
 void makeRobotRotate360() {
@@ -63,7 +53,7 @@ void makeRobotRotate360() {
   analogWrite(motorPin3, 512);
   analogWrite(motorPin4, 0);
 
-  delay(50); // Adjust this delay based on your application
+  delay(350); // Adjust this delay based on your application
 
   // Stop the motors
   digitalWrite(motorPin1, LOW);
@@ -85,23 +75,18 @@ void loop() {
 
   WiFiClient client = server.available();
   if (client) {
-    Serial.println("New client");
     // Read the client request
     String request = client.readStringUntil('\r');
-    Serial.println(request);
   if (request.indexOf("/rotate") != -1) {
-        Serial.println("Received request to rotate 360 degrees");
         // Make the robot rotate 360 degrees
         makeRobotRotate360();
       }
 
   if (request.indexOf("/start") != -1) {
-        Serial.println("Received request to start");
         // Make the robot rotate 360 degrees
         startRobot();
       }
   if (request.indexOf("/stop") != -1) {
-        Serial.println("Received request to stop");
         // Make the robot rotate 360 degrees
         stopRobot();
       }
@@ -136,7 +121,6 @@ void loop() {
   if (start == true){
 
   if ((leftValue == HIGH && centerValue == LOW && rightValue == LOW) || (leftValue == HIGH && centerValue == LOW && rightValue == LOW)) {
-    Serial.println("Turning Left");
 
     analogWrite(motorPin1, curveSpeed);
     analogWrite(motorPin2, 0);
@@ -148,7 +132,6 @@ void loop() {
     lastCenter = 0;
 } else if (leftValue == LOW && centerValue == HIGH && rightValue == LOW) {
 
-    Serial.println("Going Straight");
     analogWrite(motorPin1, speed);
     analogWrite(motorPin2, 0);
     analogWrite(motorPin3, 0);
@@ -160,7 +143,6 @@ void loop() {
 
 } else if ((leftValue == LOW && centerValue == LOW && rightValue == HIGH ) ||(leftValue == LOW && centerValue == HIGH && rightValue == HIGH ) ) {
     // Turn right
-    Serial.println("Turning Right");
     analogWrite(motorPin1, 0);
     analogWrite(motorPin2, 0);
     analogWrite(motorPin3, 0);
