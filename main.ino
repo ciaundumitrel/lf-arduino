@@ -4,6 +4,9 @@ const char* ssid = "Dumi ";
 const char* password = "parola123";
 WiFiServer server(80); 
 
+int speed = 180;
+int curveSpeed = 360;
+
 int motorPin1 = D1;   
 int motorPin2 = D2;    
 
@@ -53,16 +56,14 @@ void setup() {
 
 void makeRobotRotate360() {
   // Set motor speeds for clockwise rotation
-  int speed = 230;
-  int rightMotorSpeed = 100;
 
   // Set the motor speeds and start the motors
-  analogWrite(motorPin1, speed);
+  analogWrite(motorPin1, 512);
   analogWrite(motorPin2, 0);
-  analogWrite(motorPin3, speed);
+  analogWrite(motorPin3, 512);
   analogWrite(motorPin4, 0);
 
-  delay(5000); // Adjust this delay based on your application
+  delay(50); // Adjust this delay based on your application
 
   // Stop the motors
   digitalWrite(motorPin1, LOW);
@@ -82,7 +83,6 @@ void stopRobot() {
 void loop() {
 
 
-  int speed = 225;
   WiFiClient client = server.available();
   if (client) {
     Serial.println("New client");
@@ -135,10 +135,10 @@ void loop() {
   int rightValue = digitalRead(rightTrackerPin);
   if (start == true){
 
-  if (leftValue == HIGH && centerValue == LOW && rightValue == LOW) {
+  if ((leftValue == HIGH && centerValue == LOW && rightValue == LOW) || (leftValue == HIGH && centerValue == LOW && rightValue == LOW)) {
     Serial.println("Turning Left");
 
-    analogWrite(motorPin1, speed);
+    analogWrite(motorPin1, curveSpeed);
     analogWrite(motorPin2, 0);
     analogWrite(motorPin3, 0);
     analogWrite(motorPin4, 0);
@@ -158,25 +158,25 @@ void loop() {
     lastRight = 0;
     lastCenter = speed;
 
-} else if (leftValue == LOW && centerValue == LOW && rightValue == HIGH) {
+} else if ((leftValue == LOW && centerValue == LOW && rightValue == HIGH ) ||(leftValue == LOW && centerValue == HIGH && rightValue == HIGH ) ) {
     // Turn right
     Serial.println("Turning Right");
     analogWrite(motorPin1, 0);
     analogWrite(motorPin2, 0);
     analogWrite(motorPin3, 0);
-    analogWrite(motorPin4, speed);
+    analogWrite(motorPin4, curveSpeed);
 
 
     lastLeft = 0;
     lastRight = speed;
     lastCenter = 0;
-    
+
 } else if (leftValue == LOW && centerValue == LOW && rightValue == LOW) {
     // Stop
-    analogWrite(motorPin1, lastLeft);
+    analogWrite(motorPin1, speed);
     analogWrite(motorPin2, 0);
     analogWrite(motorPin3, 0);
-    analogWrite(motorPin4, lastRight);
+    analogWrite(motorPin4, speed);
 
 } else {
     // Stop
@@ -195,7 +195,7 @@ else{
 
 
 
-  delay(500);  
+  delay(1);  
   // Adjust this delay based on your application
   // sensorValue = analogRead(analogInPin);
   // float voltage = sensorValue * (Vmax - Vmin) / 4095.0 + Vmin;
