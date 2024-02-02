@@ -16,11 +16,15 @@ int rightTrackerPin = D7;
 
 int motorPin3 = D3;
 int motorPin4 = D4;
-const float Vmin = 0.0;  
-const float Vmax = 6.0;  
 
-const int analogInPin = A0;  
-int sensorValue = 0; 
+int red = D0;
+int blue = D8;
+
+// const float Vmin = 0.0;  
+// const float Vmax = 6.0;  
+
+// const int analogInPin = A0;  
+// int sensorValue = 0; 
 
 bool start = false;
 
@@ -30,13 +34,20 @@ void setup() {
 
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
   }
+  Serial.println(WiFi.localIP());
+  server.begin();
+
 
   pinMode(motorPin1, OUTPUT);
   pinMode(motorPin2, OUTPUT);
   pinMode(motorPin3, OUTPUT);
   pinMode(motorPin4, OUTPUT);
 
+  pinMode(red, OUTPUT);
+  pinMode(blue, OUTPUT);
   // Set tracker sensor pins as input
   pinMode(leftTrackerPin, INPUT);
   pinMode(centerTrackerPin, INPUT);
@@ -45,21 +56,61 @@ void setup() {
 }
 
 void makeRobotRotate360() {
-  // Set motor speeds for clockwise rotation
-
-  // Set the motor speeds and start the motors
-  analogWrite(motorPin1, 512);
+  analogWrite(motorPin1, speed);
   analogWrite(motorPin2, 0);
-  analogWrite(motorPin3, 512);
+  analogWrite(motorPin3, speed);
   analogWrite(motorPin4, 0);
 
-  delay(350); // Adjust this delay based on your application
+  delay(5000); // Adjust this delay based on your application
 
-  // Stop the motors
   digitalWrite(motorPin1, LOW);
   digitalWrite(motorPin2, LOW);
   digitalWrite(motorPin3, LOW);
   digitalWrite(motorPin4, LOW);
+}
+
+
+void moveForward() {
+    analogWrite(motorPin1, speed);
+    analogWrite(motorPin2, 0);
+    analogWrite(motorPin3, 0);
+    analogWrite(motorPin4, speed);
+    delay(1000);
+    analogWrite(motorPin1, 0);
+    analogWrite(motorPin4, 0);
+}
+
+void moveBackward() {
+    analogWrite(motorPin1, 0);
+    analogWrite(motorPin2, speed);
+    analogWrite(motorPin3, speed);
+    analogWrite(motorPin4, 0);
+
+   delay(1000);
+
+   analogWrite(motorPin2, 0);
+   analogWrite(motorPin3, 0);
+   }
+
+void moveLeft() {
+    analogWrite(motorPin1, curveSpeed);
+    analogWrite(motorPin2, 0);
+    analogWrite(motorPin3, 0);
+    analogWrite(motorPin4, 0);
+
+    delay(1000);
+   
+    analogWrite(motorPin1, 0);
+}
+
+void moveRight() {
+    analogWrite(motorPin1, 0);
+    analogWrite(motorPin2, 0);
+    analogWrite(motorPin3, 0);
+    analogWrite(motorPin4, curveSpeed);
+    delay(1000);
+    analogWrite(motorPin4, 0);
+
 }
 
 void startRobot() {
@@ -70,29 +121,70 @@ void stopRobot() {
   start = false;
 }
 
-void loop() {
 
+void loop() {
+  digitalWrite(blue, HIGH);
+  digitalWrite(red, HIGH);
 
   WiFiClient client = server.available();
   if (client) {
     // Read the client request
     String request = client.readStringUntil('\r');
+    Serial.println(request);
   if (request.indexOf("/rotate") != -1) {
+        Serial.println("Received request to rotate 360 degrees");
         // Make the robot rotate 360 degrees
         makeRobotRotate360();
       }
 
-  if (request.indexOf("/start") != -1) {
+  else if (request.indexOf("/start") != -1) {
+    Serial.println("Received request to start");
         // Make the robot rotate 360 degrees
         startRobot();
-      }
-  if (request.indexOf("/stop") != -1) {
+        client.println("HTTP/1.1 200 OK");
+        client.println("Content-Type: text/plain");
+        client.println();
+        client.println("OK");  
+        }
+    else if (request.indexOf("/forward") != -1) {
+      Serial.println("Received request to move forward");
+      moveForward();
+      client.println("HTTP/1.1 200 OK");
+      client.println("Content-Type: text/plain");
+      client.println();
+      client.println("Moving Forward");
+    } 
+    else if (request.indexOf("/backward") != -1) {
+      Serial.println("Received request to move backward");
+      moveBackward();
+      client.println("HTTP/1.1 200 OK");
+      client.println("Content-Type: text/plain");
+      client.println();
+      client.println("Moving Backward");
+    } 
+    else if (request.indexOf("/left") != -1) {
+      Serial.println("Received request to move left");
+      moveLeft();
+      client.println("HTTP/1.1 200 OK");
+      client.println("Content-Type: text/plain");
+      client.println();
+      client.println("Moving Left");
+    }
+     else if (request.indexOf("/right") != -1) {
+      Serial.println("Received request to move right");
+      moveRight();
+      client.println("HTTP/1.1 200 OK");
+      client.println("Content-Type: text/plain");
+      client.println();
+      client.println("Moving Right");
+    }
+    else if (request.indexOf("/stop") != -1) {
+        Serial.println("Received request to stop");
         // Make the robot rotate 360 degrees
         stopRobot();
       }
-
-    // Handle the request
-    if (request.indexOf("/") != -1) {
+  
+    else if (request.indexOf("/") != -1) {
       client.println("HTTP/1.1 200 OK");
       client.println("Content-Type: text/html");
       client.println();
@@ -107,7 +199,6 @@ void loop() {
       client.println("</body>");
       client.println("</html>");
     }
-
   }
 
 
@@ -120,7 +211,7 @@ void loop() {
   int rightValue = digitalRead(rightTrackerPin);
   if (start == true){
 
-  if ((leftValue == HIGH && centerValue == LOW && rightValue == LOW) || (leftValue == HIGH && centerValue == LOW && rightValue == LOW)) {
+  if ((leftValue == HIGH && centerValue == LOW && rightValue == LOW) ||(leftValue == HIGH && centerValue == HIGH && rightValue == LOW) ) {
 
     analogWrite(motorPin1, curveSpeed);
     analogWrite(motorPin2, 0);
@@ -146,7 +237,7 @@ void loop() {
     analogWrite(motorPin1, 0);
     analogWrite(motorPin2, 0);
     analogWrite(motorPin3, 0);
-    analogWrite(motorPin4, curveSpeed);
+    analogWrite(motorPin4, 512);
 
 
     lastLeft = 0;
@@ -177,7 +268,7 @@ else{
 
 
 
-  delay(1);  
+  delay(5);  
   // Adjust this delay based on your application
   // sensorValue = analogRead(analogInPin);
   // float voltage = sensorValue * (Vmax - Vmin) / 4095.0 + Vmin;
