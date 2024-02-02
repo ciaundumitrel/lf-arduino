@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Requests</title>
+</head>
+<body>
+
+<!-- Buttons for Start, Stop, and Rotate -->
+<button onclick="sendRequest('start')">Start</button>
+<button onclick="sendRequest('stop')">Stop</button>
+<button onclick="sendRequest('rotate')">Rotate</button>
+
+<!-- Buttons for moving forward, backward, left, and right -->
+<button onclick="sendRequest('forward')">Move Forward</button>
+<button onclick="sendRequest('backward')">Move Backward</button>
+<button onclick="sendRequest('left')">Move Left</button>
+<button onclick="sendRequest('right')">Move Right</button>
+
+<!-- Display area for the response -->
+<div id="response-container"></div>
+
+<script>
+    // URL to send the request to
+    var URL = "http://172.20.10.2/";
+
+    // Function to send the HTTP request
+    function sendRequest(arg) {
+        var url = URL + arg;
+        console.log("Sending request to: " + url);
+
+        // Use XMLHttpRequest to make the GET request
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                console.log("Response:");
+                console.log(xhr.responseText);
+
+                // Display the response in the response-container div
+                document.getElementById('response-container').innerText = xhr.responseText;
+            }
+        };
+        xhr.open("GET", url, true);
+        xhr.send();
+    }
+</script>
+
+</body>
+</html>
